@@ -1,9 +1,10 @@
 #Lecture de la base de donnees Voice4PD
-
-D <- read.table("Voice4PD.csv",header=T,sep=";",dec=",")
+library(nnet)
+library(AER)
+D <- read.table("Voice4PD.csv",header=T,sep=";",dec=",",as.is=T)
 D[,1] <- NULL
 colnames(D) <- c("Classe","Atonie","Debit","Irreg","Puissance")
-#D[,1] <- as.factor(D[,1])
+D[,1] <- as.factor(D[,1])
 summary(D)
 
 #On observe les effets des variables sur la reponse
@@ -35,7 +36,6 @@ ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position =
 
 #On teste un modele de regression multinomiale
 
-library(nnet)
 regMult <- multinom(Classe ~ .,data=D,Hess=T);
 summary(regMult)
 
@@ -43,7 +43,6 @@ head(regMult$fitted.values)
 pr = predict(regMult,D)
 table(D[,1],pr)
 
-library(AER)
 coeftest(regMult)
 
 
@@ -106,3 +105,50 @@ table(D[,1],prInter)
 coeftest(regMultInter)
 #Clairement pas terrible avec un AIC trop élevé
 
+
+
+
+
+
+###TEST AVEC UNE INTERPRETATION BINAIRE
+D <- read.table("Voice4PD.csv",header=T,sep=";",dec=",",as.is=T)
+D[,1] <- NULL
+colnames(D) <- c("Classe","Atonie","Debit","Irreg","Puissance")
+summary(D)
+D$Classe[D$Classe %in% c('HC','PD')]<-0
+D$Classe[D$Classe %in% c('MSA','PSP')]<-1
+D[,1] <- as.factor(D[,1])
+D$Classe
+plot(D$Atonie ~ D$Classe)
+plot(D$Debit ~ D$Classe)
+plot(D$Irreg ~ D$Classe)
+plot(D$Puissance ~ D$Classe)
+
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie)))   
+#On observe un effet de la variable Atonie sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit)))
+#On observe un effet de la variable Debit sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Irreg>median(Irreg)))
+#On observe un effet de la variable Irreg sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Puissance>median(Puissance)))
+#On observe un effet de la variable Puissance sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie))+(Debit>median(Debit)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie))+(Irreg>median(Irreg)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie))+(Puissance>median(Puissance)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit))+(Irreg>median(Irreg)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit))+(Puissance>median(Puissance)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Irreg>median(Irreg))+(Puissance>median(Puissance)))
+
+#Modele logistique
+m2 <- glm(Classe ~ ., family = binomial, data = D)
+summary(m2)
+p <- predict(m2, type = "response")
+predictTab <- table(p > 0.5, D$Classe)
+print(predictTab)
+classRate <- sum(diag(predictTab))/sum(predictTab)
+print(classRate)
