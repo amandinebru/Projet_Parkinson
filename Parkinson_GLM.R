@@ -6,11 +6,34 @@ colnames(D) <- c("Classe","Atonie","Debit","Irreg","Puissance")
 #D[,1] <- as.factor(D[,1])
 summary(D)
 
+#On observe les effets des variables sur la reponse
 hist(D$Atonie)
 plot(D$Atonie ~ D$Classe)
 plot(D$Debit ~ D$Classe)
 plot(D$Irreg ~ D$Classe)
 plot(D$Puissance ~ D$Classe)
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie)))   
+#On observe un effet de la variable Atonie sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit)))
+#On observe un effet de la variable Debit sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Irreg>median(Irreg)))
+#On observe un effet de la variable Irreg sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Puissance>median(Puissance)))
+#On observe un effet de la variable Puissance sur la reponse
+
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie))+(Debit>median(Debit)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie))+(Irreg>median(Irreg)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Atonie>median(Atonie))+(Puissance>median(Puissance)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit))+(Irreg>median(Irreg)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit))+(Puissance>median(Puissance)))    
+ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Irreg>median(Irreg))+(Puissance>median(Puissance)))    
+
+
+#On teste un modele de regression multinomiale
 
 library(nnet)
 regMult <- multinom(Classe ~ .,data=D,Hess=T);
@@ -28,6 +51,7 @@ coeftest(regMult)
 #H0: Atonie = 0 ; H1: Atonie /= 0
 
 regMult1 = multinom(Classe ~ Debit+Irreg+Puissance,data=D)
+summary(regMult1)
 rv1 = regMult1$deviance - regMult$deviance
 ddl1 = regMult$edf - regMult1$edf
 pvaleur1 = 1 - pchisq(rv1,ddl1)
@@ -71,5 +95,14 @@ print(c(rv4,ddl4,pvaleur4))
 
 #pval = 0.0077 < 0.05 donc on rejette H0. Il y a bien un effet de la puissance sur la classification des malades.
 
+#Modele avec interactions
+regMultInter <- multinom(Classe ~ .^2,data=D,Hess=T);
+summary(regMultInter)
 
+head(regMultInter$fitted.values)
+prInter = predict(regMultInter,D)
+table(D[,1],prInter)
+
+coeftest(regMultInter)
+#Clairement pas terrible avec un AIC trop élevé
 
