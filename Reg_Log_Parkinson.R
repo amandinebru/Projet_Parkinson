@@ -53,3 +53,6 @@ summary(new_val)
 
 pred <- c(predict(RegLog, new_val, type = "response") > 0.5)
 print(pred)
+
+
+RegLogStep = step(RegLog,direction="backward")
