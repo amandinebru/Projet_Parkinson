@@ -1,6 +1,7 @@
 #Lecture de la base de donnees Voice4PD
 library(nnet)
 library(AER)
+library(MASS)
 D <- read.table("Voice4PD.csv",header=T,sep=";",dec=",",as.is=T)
 D[,1] <- NULL
 colnames(D) <- c("Classe","Atonie","Debit","Irreg","Puissance")
@@ -36,14 +37,64 @@ ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position =
 
 #On teste un modele de regression multinomiale
 
-regMult <- multinom(Classe ~ .,data=D,Hess=T);
+test.ratio = 0.2 #part de l'echantillon test
+npop = nrow(D) #nombre de lignes dans le dataframe
+nvar = ncol(D) #nombre de colonnes
+ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+testi = sample(1:npop,ntest) # indices de l'échantillon test
+appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+
+datappr=D[appri,] # construction de l'échantillon d'apprentissage
+datest=D[testi,-1] # construction de l'échantillon test
+
+summary(datappr)
+
+
+
+regMult <- multinom(Classe ~ .,data=datappr,Hess=T);
 summary(regMult)
 
 head(regMult$fitted.values)
-pr = predict(regMult,D)
-table(D[,1],pr)
+pr = predict(regMult,datest)
+predictTab = table(D[testi,1],pr)
+print(predictTab)
+classRate <- sum(diag(predictTab))/sum(predictTab)
+print(classRate)
 
-coeftest(regMult)
+#v1 <- c(3.11,2.37,1.19,1.10)
+#v2 <- c(1,2.86,1.39,1.64)
+#v3 <- c(1.73,2.02,0.87,1.45)
+
+#test sur 3 nouvelles valeurs
+new_val <- data.frame(Atonie=c(3.11,1,1.73), Debit=c(2.37,2.86,2.02),Irreg=c(1.19,1.39,0.87),Puissance=c(1.10,1.64,1.45))
+summary(new_val)
+pred <- predict(regMult, new_val)
+print(pred) #MSA,MSA,MSA ou #MSA,PSP,MSA
+
+#ON VA TESTER CE MODELE UNE 100AINE DE FOIS
+
+vectClassRate = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  regMult <- multinom(Classe ~ .,data=datappr,Hess=T);
+  
+  pr = predict(regMult,datest)
+  predictTab = table(D[testi,1],pr)
+  print(predictTab)
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  print(classRate)
+  vectClassRate <- c(vectClassRate,classRate)
+}
+
+hist(vectClassRate)
 
 
 ###TEST 1 ATONIE=0 ?
@@ -94,7 +145,9 @@ print(c(rv4,ddl4,pvaleur4))
 
 #pval = 0.0077 < 0.05 donc on rejette H0. Il y a bien un effet de la puissance sur la classification des malades.
 
-#Modele avec interactions
+
+
+#MODELE AVEC INTERACTIONS
 regMultInter <- multinom(Classe ~ .^2,data=D,Hess=T);
 summary(regMultInter)
 
@@ -104,3 +157,9 @@ table(D[,1],prInter)
 
 coeftest(regMultInter)
 #Clairement pas terrible avec un AIC trop élevé
+
+
+regMultStep = stepAIC(regMultInter,direction="backward")
+#avec le critere AIC, toutes les interactions ont été enlevees on revient donc au modele de base
+
+

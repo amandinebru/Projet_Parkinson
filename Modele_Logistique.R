@@ -48,11 +48,12 @@ v1 <- c(3.11,2.37,1.19,1.10)
 v2 <- c(1,2.86,1.39,1.64)
 v3 <- c(1.73,2.02,0.87,1.45)
 
+#test sur 3 nouvelles valeurs
 new_val <- data.frame(Atonie=c(3.11,1,1.73), Debit=c(2.37,2.86,2.02),Irreg=c(1.19,1.39,0.87),Puissance=c(1.10,1.64,1.45))
 summary(new_val)
 
 pred <- c(predict(RegLog, new_val, type = "response") > 0.5)
-print(pred)
+print(pred) #on obtient trois "1"
 
 
 RegLogStep = step(RegLog,direction="backward")
