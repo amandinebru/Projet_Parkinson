@@ -84,3 +84,51 @@ for (i in 1:1000){
 }
 hist(vectClassRate)
 mean(vectClassRate)#0.802
+
+
+
+#ON VA METTRE 0 POUR HC ET 1 POUR LE RESTE
+D <- read.table("Voice4PD.csv",header=T,sep=";",dec=",",as.is=T)
+D[,1] <- NULL
+colnames(D) <- c("Classe","Atonie","Debit","Irreg","Puissance")
+D$Classe[D$Classe %in% c('HC')]<-0
+D$Classe[D$Classe %in% c('PD','MSA','PSP')]<-1
+D[,1] <- as.factor(D[,1])
+summary(D)
+
+plot(D$Atonie ~ D$Classe)
+plot(D$Debit ~ D$Classe)
+plot(D$Irreg ~ D$Classe)
+plot(D$Puissance ~ D$Classe)
+
+
+RegLog2 <- glm(Classe ~ ., family = binomial, data = D)
+summary(RegLog2)
+p <- predict(RegLog2, type = "response")
+predictTab <- table(p > 0.5, D$Classe)
+print(predictTab)
+classRate <- sum(diag(predictTab))/sum(predictTab)
+print(classRate)
+
+vectClassRate2 = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  RegLog2 <- glm(Classe ~ ., family = binomial, data = datappr)
+  
+  p <- predict(RegLog2, type = "response",datest)
+  predictTab <- table(p > 0.5, D[testi,1])
+  print(predictTab)
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  print(classRate)
+  vectClassRate2 <- c(vectClassRate2,classRate)
+}
+hist(vectClassRate2)
+mean(vectClassRate2)#0.722
