@@ -95,6 +95,7 @@ for (i in 1:1000){
 }
 
 hist(vectClassRate)
+mean(vectClassRate) #0.445
 
 
 ###TEST 1 ATONIE=0 ?
@@ -161,5 +162,69 @@ coeftest(regMultInter)
 
 regMultStep = stepAIC(regMultInter,direction="backward")
 #avec le critere AIC, toutes les interactions ont été enlevees on revient donc au modele de base
+
+
+#ON VA TESTER LA CLASSIFICATION RATE SUR LE MODELE AVEC INTERCATIONS (inutile normalement)
+vectClassRateInter = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  regMultInter <- multinom(Classe ~ .^2,data=datappr,Hess=T);
+  
+  pr = predict(regMultInter,datest)
+  predictTab = table(D[testi,1],pr)
+  print(predictTab)
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  print(classRate)
+  vectClassRateInter <- c(vectClassRateInter,classRate)
+}
+hist(vectClassRateInter)
+mean(vectClassRateInter)#0.434
+
+
+
+#AVEC DES INTERACTIONS A L ORDRE 3
+regOrdre3 <- multinom(Classe ~ .^3,data=D,Hess=T);
+summary(regMultInter)
+prInter = predict(regOrdre3,D)
+table(D[,1],prInter)
+classRate <- sum(diag(predictTab))/sum(predictTab)
+print(classRate)
+regMultStep3 = stepAIC(regOrdre3,direction="backward")
+summary(regMultStep3)
+
+
+vectClassRate3 = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  regMultStep3 <- multinom(Classe ~ Atonie + Debit + Irreg + Puissance + Atonie:Debit + 
+                             Atonie:Irreg + Atonie:Puissance + Debit:Irreg + Debit:Puissance + 
+                             Irreg:Puissance + Atonie:Debit:Puissance + Debit:Irreg:Puissance,data=datappr,Hess=T);
+  
+  pr = predict(regMultStep3,datest)
+  predictTab = table(D[testi,1],pr)
+  print(predictTab)
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  print(classRate)
+  vectClassRate3 <- c(vectClassRate3,classRate)
+}
+hist(vectClassRate3)
+mean(vectClassRate3)#0.443
+
 
 

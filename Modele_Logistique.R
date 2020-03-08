@@ -57,3 +57,30 @@ print(pred) #on obtient trois "1"
 
 
 RegLogStep = step(RegLog,direction="backward")
+
+
+
+#ON VA TESTER PLUSIEURS FOIS LE MODELE
+
+vectClassRate = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  RegLog <- glm(Classe ~ ., family = binomial, data = datappr)
+  
+  p <- predict(RegLog, type = "response",datest)
+  predictTab <- table(p > 0.5, D[testi,1])
+  print(predictTab)
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  print(classRate)
+  vectClassRate <- c(vectClassRate,classRate)
+}
+hist(vectClassRate)
+mean(vectClassRate)#???0.802
