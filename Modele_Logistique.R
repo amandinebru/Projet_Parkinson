@@ -83,4 +83,4 @@ for (i in 1:1000){
   vectClassRate <- c(vectClassRate,classRate)
 }
 hist(vectClassRate)
-mean(vectClassRate)#???0.802
+mean(vectClassRate)#0.802
