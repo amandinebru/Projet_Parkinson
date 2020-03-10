@@ -34,6 +34,25 @@ ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position =
 ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Debit>median(Debit))+(Puissance>median(Puissance)))    
 ggplot(data = D, mapping = aes(x = Classe, fill = Classe)) + geom_bar(position ="dodge") + facet_wrap(~(Irreg>median(Irreg))+(Puissance>median(Puissance)))    
 
+#On regarde si les variables sont indépedantes
+Atonie = D$Atonie
+Debit = D$Debit
+Irreg = D$Irreg
+Puissance = D$Puissance
+
+
+khi_test1 = chisq.test(table(Atonie,Debit)); khi_test1 #Atonie et Debit pas indep
+cor(Atonie,Debit)
+khi_test2 = chisq.test(table(Atonie,Irreg)); khi_test2 #Atonie et Irreg indep
+cor(Atonie,Irreg)
+khi_test3 = chisq.test(table(Atonie,Puissance)); khi_test3 #Atonie et Puissance indep
+cor(Atonie,Puissance)
+khi_test4 = chisq.test(table(Debit,Irreg)); khi_test4 #Debit et Irreg indep
+cor(Debit,Irreg)
+khi_test5 = chisq.test(table(Debit,Puissance)); khi_test5 #Debit et Puissance indep bof
+cor(Debit,Puissance)
+khi_test6 = chisq.test(table(Irreg,Puissance)); khi_test6 #Irreg et Puissance indep
+cor(Irreg,Puissance)
 
 #On teste un modele de regression multinomiale
 
@@ -226,5 +245,7 @@ for (i in 1:1000){
 hist(vectClassRate3)
 mean(vectClassRate3)#0.443
 
+
+#NAIVE BAYES CLASSIFIER
 
 
