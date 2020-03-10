@@ -247,5 +247,8 @@ mean(vectClassRate3)#0.443
 
 
 #NAIVE BAYES CLASSIFIER
+library(e1071)
 
-
+Naive_Bayes_Model <- naiveBayes(Classe ~ .,data=D)
+Naive_Bayes_Model
+p = predict(Naive_Bayes_Model)
