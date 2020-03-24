@@ -85,6 +85,31 @@ for (i in 1:1000){
 hist(vectClassRate)
 mean(vectClassRate)#0.802
 
+#NAIVE BAYES CLASSIFIER
+vectClassRateB = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  
+  Naive_Bayes_Model <- naiveBayes(Classe ~ .,data=datappr)
+  Naive_Bayes_Model
+  p = predict(Naive_Bayes_Model,datest)
+  predictTab = table(p,D[testi,1])
+  predictTab
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  classRate 
+  vectClassRateB <- c(vectClassRateB,classRate)
+}
+hist(vectClassRateB)
+mean(vectClassRateB) #0.805
+
 
 
 #ON VA METTRE 0 POUR HC ET 1 POUR LE RESTE
@@ -132,3 +157,30 @@ for (i in 1:1000){
 }
 hist(vectClassRate2)
 mean(vectClassRate2)#0.722
+
+
+#NAIVE BAYES CLASSIFIER
+vectClassRateB2 = c()
+for (i in 1:1000){
+  test.ratio = 0.2 #part de l'echantillon test
+  npop = nrow(D) #nombre de lignes dans le dataframe
+  nvar = ncol(D) #nombre de colonnes
+  ntest = ceiling(npop*test.ratio) #taille de l'echantillon test
+  testi = sample(1:npop,ntest) # indices de l'échantillon test
+  appri=setdiff(1:npop,testi) # indices de l'échantillon d'apprentissage
+  
+  datappr=D[appri,] # construction de l'échantillon d'apprentissage
+  datest=D[testi,-1] # construction de l'échantillon test
+  
+  Naive_Bayes_Model <- naiveBayes(Classe ~ .,data=datappr)
+  Naive_Bayes_Model
+  p = predict(Naive_Bayes_Model,datest)
+  predictTab = table(p,D[testi,1])
+  predictTab
+  classRate <- sum(diag(predictTab))/sum(predictTab)
+  classRate 
+  vectClassRateB2 <- c(vectClassRateB2,classRate)
+}
+hist(vectClassRateB2)
+mean(vectClassRateB2) #0.67
+
